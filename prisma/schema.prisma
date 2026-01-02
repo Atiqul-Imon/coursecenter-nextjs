@@ -1,0 +1,358 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String?
+  role          UserRole       @default(STUDENT)
+  phone         String?
+  avatar        String?
+  emailVerified Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  admin         Admin?
+  applications  Application[]
+  consultations Consultation[]
+  messagesFrom  Message[]      @relation("MessageFrom")
+  messagesTo    Message[]      @relation("MessageTo")
+  student       Student?
+
+  @@map("users")
+}
+
+model Student {
+  id               String    @id @default(uuid())
+  userId           String    @unique
+  dateOfBirth      DateTime?
+  nationality      String?
+  address          String?
+  city             String?
+  country          String?
+  postalCode       String?
+  emergencyContact String?
+  emergencyPhone   String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("students")
+}
+
+model Admin {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  department String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admins")
+}
+
+model University {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logo        String?
+  website     String?
+  country     String
+  city        String?
+  ranking     Int?
+  established Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  courses     Course[]
+
+  @@map("universities")
+}
+
+model Course {
+  id                String           @id @default(uuid())
+  title             String
+  slug              String           @unique
+  description       String?
+  shortDescription  String?
+  universityId      String?
+  level             CourseLevel
+  duration          Int
+  tuitionFee        Decimal?         @db.Decimal(10, 2)
+  currency          String           @default("GBP")
+  intakeMonths      String[]
+  entryRequirements String?
+  language          String           @default("English")
+  image             String?
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  applications      Application[]
+  applicants        Applicant[]
+  categories        CourseCategory[]
+  university        University?      @relation(fields: [universityId], references: [id])
+
+  @@map("courses")
+}
+
+model CourseCategory {
+  id       String @id @default(uuid())
+  courseId String
+  category String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([courseId, category])
+  @@map("course_categories")
+}
+
+model Application {
+  id                String                     @id @default(uuid())
+  studentId         String
+  courseId          String
+  status            ApplicationStatus          @default(PENDING)
+  intakeMonth       String?
+  intakeYear        Int?
+  personalStatement String?
+  notes             String?
+  submittedAt       DateTime?
+  reviewedAt        DateTime?
+  decisionDate      DateTime?
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+  statusHistory     ApplicationStatusHistory[]
+  course            Course                     @relation(fields: [courseId], references: [id])
+  student           User                       @relation(fields: [studentId], references: [id])
+  documents         Document[]
+
+  @@map("applications")
+}
+
+model ApplicationStatusHistory {
+  id            String            @id @default(uuid())
+  applicationId String
+  status        ApplicationStatus
+  notes         String?
+  changedBy     String?
+  createdAt     DateTime          @default(now())
+  application   Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("application_status_history")
+}
+
+model Document {
+  id            String       @id @default(uuid())
+  applicationId String
+  type          DocumentType
+  fileName      String
+  fileUrl       String
+  fileSize      Int
+  mimeType      String?
+  uploadedAt    DateTime     @default(now())
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+model Consultation {
+  id           String             @id @default(uuid())
+  studentId    String
+  consultantId String?
+  type         ConsultationType   @default(GENERAL)
+  status       ConsultationStatus @default(SCHEDULED)
+  scheduledAt  DateTime
+  duration     Int                @default(60)
+  meetingLink  String?
+  notes        String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  student      User               @relation(fields: [studentId], references: [id])
+  messages     Message[]
+
+  @@map("consultations")
+}
+
+model Message {
+  id             String        @id @default(uuid())
+  consultationId String?
+  fromUserId     String
+  toUserId       String?
+  subject        String?
+  content        String
+  isRead         Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  consultation   Consultation? @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  fromUser       User          @relation("MessageFrom", fields: [fromUserId], references: [id])
+  toUser         User?         @relation("MessageTo", fields: [toUserId], references: [id])
+
+  @@map("messages")
+}
+
+model BlogPost {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  excerpt     String?
+  content     String
+  image       String?
+  authorId    String?
+  category    String?
+  tags        String[]
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  views       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("blog_posts")
+}
+
+model FAQ {
+  id        String   @id @default(uuid())
+  question  String
+  answer    String
+  category  String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("faqs")
+}
+
+model Testimonial {
+  id        String   @id @default(uuid())
+  name      String
+  role      String?
+  content   String
+  rating    Int      @default(5)
+  image     String?
+  isActive  Boolean  @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("testimonials")
+}
+
+model Applicant {
+  id                  String   @id @default(uuid())
+  firstName           String
+  lastName            String
+  email               String
+  phone               String
+  courseId            String?
+  preferredCourse     String?
+  preferredUniversity String?
+  marketingConsent    Boolean  @default(false)
+  privacyConsent      Boolean  @default(false)
+  cookieConsent       Json? // Store cookie preferences as JSON
+  imageUrl            String?
+  status              String   @default("PENDING")
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  course              Course?  @relation(fields: [courseId], references: [id])
+
+  @@map("applicants")
+}
+
+model ConsentRecord {
+  id            String    @id @default(uuid())
+  userId        String? // Optional - can be for non-registered users
+  email         String
+  consentType   String // "marketing", "analytics", "cookies", "privacy"
+  consentGiven  Boolean
+  consentMethod String // "banner", "form", "manual"
+  ipAddress     String?
+  userAgent     String?
+  timestamp     DateTime  @default(now())
+  withdrawnAt   DateTime?
+  metadata      Json? // Additional consent details
+
+  @@index([userId])
+  @@index([email])
+  @@index([consentType])
+  @@map("consent_records")
+}
+
+model GDPRRequest {
+  id                String    @id @default(uuid())
+  requestType       String // "access", "deletion", "portability", "rectification"
+  email             String
+  userId            String?
+  status            String    @default("PENDING") // "PENDING", "PROCESSING", "COMPLETED", "REJECTED"
+  requestedAt       DateTime  @default(now())
+  completedAt       DateTime?
+  notes             String?
+  responseData      Json? // Store exported data or response details
+  verified          Boolean   @default(false)
+  verificationToken String?   @unique
+
+  @@index([email])
+  @@index([userId])
+  @@index([status])
+  @@map("gdpr_requests")
+}
+
+enum UserRole {
+  STUDENT
+  ADMIN
+  CONSULTANT
+}
+
+enum CourseLevel {
+  FOUNDATION
+  UNDERGRADUATE
+  POSTGRADUATE
+  PHD
+  CERTIFICATE
+  DIPLOMA
+}
+
+enum ApplicationStatus {
+  DRAFT
+  PENDING
+  UNDER_REVIEW
+  CONDITIONAL_OFFER
+  UNCONDITIONAL_OFFER
+  REJECTED
+  WITHDRAWN
+}
+
+enum DocumentType {
+  PASSPORT
+  TRANSCRIPT
+  DIPLOMA
+  CERTIFICATE
+  CV
+  PERSONAL_STATEMENT
+  REFERENCE_LETTER
+  ENGLISH_TEST
+  FINANCIAL_PROOF
+  OTHER
+}
+
+enum ConsultationType {
+  GENERAL
+  COURSE_SELECTION
+  APPLICATION_REVIEW
+  DOCUMENT_REVIEW
+  FOLLOW_UP
+}
+
+enum ConsultationStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}

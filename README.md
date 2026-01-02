@@ -1,36 +1,304 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Course Centre - Education Consultancy Platform
 
-## Getting Started
+A modern, enterprise-grade website for Course Centre, a leading education and student recruitment consultant in the United Kingdom.
 
-First, run the development server:
+## 🚀 Tech Stack
+
+- **Framework**: Next.js 16+ (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: shadcn/ui
+- **Database**: PostgreSQL
+- **ORM**: Prisma
+- **Authentication**: JWT with localStorage
+
+## 📋 Prerequisites
+
+- Node.js 18+ 
+- PostgreSQL database
+- npm or yarn
+
+## 🛠️ Setup Instructions
+
+### 1. Install Dependencies
+
+```bash
+npm install
+```
+
+### 2. Set Up Database
+
+1. Create a PostgreSQL database:
+```sql
+CREATE DATABASE course_centre;
+```
+
+2. Copy `.env.example` to `.env`:
+```bash
+cp .env.example .env
+```
+
+3. Update `.env` with your database credentials:
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/course_centre?schema=public"
+JWT_SECRET="your-super-secret-jwt-key"
+```
+
+### 3. Run Database Migrations
+
+```bash
+npx prisma migrate dev
+```
+
+This will:
+- Create all database tables
+- Generate Prisma Client
+
+### 4. Generate Prisma Client
+
+```bash
+npx prisma generate
+```
+
+### 5. (Optional) Seed Database
+
+Create a seed file if needed, then run:
+```bash
+npx prisma db seed
+```
+
+### 6. Start Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+course-centre/
+├── app/                    # Next.js App Router pages
+│   ├── admin/             # Admin panel pages
+│   ├── api/               # API routes
+│   ├── dashboard/         # Student dashboard
+│   └── ...
+├── components/            # React components
+│   ├── admin/             # Admin panel components
+│   └── ui/               # shadcn/ui components
+├── contexts/              # React contexts (Auth)
+├── lib/                   # Utilities and helpers
+│   ├── auth.ts           # Authentication logic
+│   ├── db.ts             # Prisma client
+│   └── utils.ts          # Utility functions
+└── prisma/               # Database schema
+    └── schema.prisma     # Prisma schema
+```
 
-## Learn More
+## 🔐 Authentication
 
-To learn more about Next.js, take a look at the following resources:
+The application uses JWT-based authentication with localStorage for client-side session management.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Register**: `/register`
+- **Login**: `/login`
+- **Dashboard**: `/dashboard` (requires authentication)
+- **Admin Panel**: `/admin` (requires ADMIN role)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 👥 User Roles
 
-## Deploy on Vercel
+- **STUDENT**: Default role for registered users
+- **ADMIN**: Full access to admin panel
+- **CONSULTANT**: Can manage consultations
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🎨 Admin Panel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The admin panel (`/admin`) provides:
+
+- **Dashboard**: Overview statistics and metrics
+- **Users**: User management
+- **Courses**: Course management
+- **Applications**: Application review and management
+- **Consultations**: Consultation scheduling
+- **Messages**: Communication management
+- **Settings**: System settings
+
+## 🗄️ Database Schema
+
+Key models:
+- `User` - Authentication and user profiles
+- `Student` - Student-specific information
+- `Course` - Course listings
+- `University` - University information
+- `Application` - Student applications
+- `Consultation` - Booking system
+- `Document` - File uploads
+
+See `prisma/schema.prisma` for complete schema.
+
+## 🚀 Deployment
+
+### Environment Variables
+
+Make sure to set these in production:
+- `DATABASE_URL` - PostgreSQL connection string
+- `JWT_SECRET` - Strong secret key (use a secure random string)
+- `IMAGEKIT_PUBLIC_KEY` - ImageKit public key
+- `IMAGEKIT_PRIVATE_KEY` - ImageKit private key
+- `IMAGEKIT_URL_ENDPOINT` - ImageKit URL endpoint
+- `NEXT_PUBLIC_APP_URL` - Your domain URL (e.g., https://yourdomain.com)
+- `NODE_ENV` - Set to "production" in production
+
+See `.env.example` for a complete list of required environment variables.
+
+### Build for Production
+
+```bash
+npm run build
+npm start
+```
+
+### Database Migrations (Production)
+
+```bash
+npx prisma migrate deploy
+```
+
+## 🌐 Vercel Deployment
+
+### Prerequisites
+
+1. A Vercel account ([vercel.com](https://vercel.com))
+2. A GitHub repository with your code
+3. A PostgreSQL database (Vercel Postgres, Supabase, or any PostgreSQL provider)
+4. ImageKit account for image uploads
+
+### Step-by-Step Deployment
+
+#### 1. Push to GitHub
+
+```bash
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/yourusername/course-centre.git
+git push -u origin main
+```
+
+#### 2. Import Project to Vercel
+
+1. Go to [vercel.com](https://vercel.com) and sign in
+2. Click "Add New..." → "Project"
+3. Import your GitHub repository
+4. Vercel will auto-detect Next.js settings
+
+#### 3. Configure Environment Variables
+
+In Vercel project settings, add these environment variables:
+
+- `DATABASE_URL` - Your PostgreSQL connection string
+- `JWT_SECRET` - Generate a secure random string (e.g., `openssl rand -base64 32`)
+- `IMAGEKIT_PUBLIC_KEY` - From your ImageKit dashboard
+- `IMAGEKIT_PRIVATE_KEY` - From your ImageKit dashboard
+- `IMAGEKIT_URL_ENDPOINT` - From your ImageKit dashboard
+- `NEXT_PUBLIC_APP_URL` - Your Vercel domain (e.g., `https://your-project.vercel.app`)
+- `NODE_ENV` - Set to `production`
+
+#### 4. Configure Build Settings
+
+Vercel will auto-detect Next.js, but ensure:
+- **Framework Preset**: Next.js
+- **Build Command**: `npm run build` (default)
+- **Output Directory**: `.next` (default)
+- **Install Command**: `npm install` (default)
+
+#### 5. Run Database Migrations
+
+After first deployment, run migrations:
+
+```bash
+# Option 1: Using Vercel CLI
+vercel env pull .env.local
+npx prisma migrate deploy
+
+# Option 2: Using direct connection
+DATABASE_URL="your-production-db-url" npx prisma migrate deploy
+```
+
+#### 6. Deploy
+
+Click "Deploy" and wait for the build to complete.
+
+### Post-Deployment
+
+1. **Create Admin User**: Use the script to create an admin account:
+   ```bash
+   npm run create:admin
+   ```
+
+2. **Verify Deployment**: Visit your Vercel URL and test:
+   - Homepage loads
+   - Admin panel accessible
+   - Database connections work
+   - Image uploads work
+
+### Vercel-Specific Notes
+
+- **Automatic Deployments**: Every push to `main` branch triggers a new deployment
+- **Preview Deployments**: Pull requests get preview deployments automatically
+- **Environment Variables**: Can be set per environment (Production, Preview, Development)
+- **Database**: Consider using Vercel Postgres for seamless integration
+- **Build Time**: First build may take 3-5 minutes
+
+### Troubleshooting
+
+**Build Fails:**
+- Check environment variables are set correctly
+- Verify `DATABASE_URL` is accessible from Vercel
+- Check build logs in Vercel dashboard
+
+**Database Connection Issues:**
+- Ensure database allows connections from Vercel IPs
+- Check connection string format
+- Verify SSL requirements
+
+**Image Upload Issues:**
+- Verify ImageKit credentials
+- Check ImageKit CORS settings
+- Verify `IMAGEKIT_URL_ENDPOINT` is correct
+
+## 📝 Development
+
+### Prisma Studio
+
+View and edit database:
+```bash
+npx prisma studio
+```
+
+### Database Migrations
+
+Create a new migration:
+```bash
+npx prisma migrate dev --name migration_name
+```
+
+## 🤝 Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Test thoroughly
+4. Submit a pull request
+
+## 📄 License
+
+Private project for Course Centre.
+
+## 🆘 Support
+
+For issues or questions, please contact the development team.
+
+---
+
+Built with ❤️ using Next.js 16
