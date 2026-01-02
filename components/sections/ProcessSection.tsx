@@ -121,28 +121,32 @@ export function ProcessSection() {
     const initialPosition = startIndex * currentCardWithGap
     
     // Set initial position without triggering scroll events
-    container.scrollLeft = initialPosition
-    setCurrentIndex(0)
-    setScrollPosition(initialPosition)
-    setIsScrolling(false)
-
-    let rafId: number | null = null
+    // Use a flag to prevent scroll handler from running during initialization
+    let isInitializing = true
     let isAdjusting = false
     let lastScrollPos = initialPosition
     let scrollTimeout: NodeJS.Timeout | null = null
     let isInitialized = false
 
-    // Initialize after a brief delay to prevent auto-scroll on mount
+    // Set initial position immediately
+    container.scrollLeft = initialPosition
+    setCurrentIndex(0)
+    setScrollPosition(initialPosition)
+    setIsScrolling(false)
+
+    // Initialize after a delay to prevent auto-scroll on mount
     const initTimeout = setTimeout(() => {
       isInitialized = true
-    }, 100)
+      isInitializing = false
+    }, 200)
 
     const handleScroll = () => {
-      if (isAdjusting || !isInitialized) return
+      // Prevent handling during initialization or adjustment
+      if (isAdjusting || !isInitialized || isInitializing) return
 
       const scrollPos = container.scrollLeft
       
-      // Only update if position actually changed (user interaction)
+      // Only update if position actually changed significantly (user interaction)
       if (Math.abs(scrollPos - lastScrollPos) < 1) return
       
       lastScrollPos = scrollPos
@@ -190,30 +194,12 @@ export function ProcessSection() {
       }, 150)
     }
 
-    // Use scroll event instead of continuous RAF for better performance
+    // Attach scroll listener immediately, but handler will check isInitialized flag
     container.addEventListener('scroll', handleScroll, { passive: true })
-
-    // Update scroll position only when actually scrolling (for animations)
-    const updateScrollPosition = () => {
-      if (container && !isAdjusting && isInitialized) {
-        const currentPos = container.scrollLeft
-        // Only update if position changed significantly (user is scrolling)
-        if (Math.abs(currentPos - lastScrollPos) > 1) {
-          setScrollPosition(currentPos)
-          lastScrollPos = currentPos
-        }
-      }
-      rafId = requestAnimationFrame(updateScrollPosition)
-    }
-
-    rafId = requestAnimationFrame(updateScrollPosition)
 
     return () => {
       clearTimeout(initTimeout)
       container.removeEventListener('scroll', handleScroll)
-      if (rafId !== null) {
-        cancelAnimationFrame(rafId)
-      }
       if (scrollTimeout) {
         clearTimeout(scrollTimeout)
       }
