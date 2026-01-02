@@ -195,15 +195,23 @@ git push -u origin main
 
 #### 3. Configure Environment Variables
 
-In Vercel project settings, add these environment variables:
+In Vercel project settings, go to **Settings** → **Environment Variables** and add these:
+
+**Add as Environment Variables** (not Secrets):
 
 - `DATABASE_URL` - Your PostgreSQL connection string
-- `JWT_SECRET` - Generate a secure random string (e.g., `openssl rand -base64 32`)
+  - Example: `postgresql://user:password@host:5432/database?sslmode=require`
+- `JWT_SECRET` - Generate a secure random string
+  - Generate with: `openssl rand -base64 32`
 - `IMAGEKIT_PUBLIC_KEY` - From your ImageKit dashboard
 - `IMAGEKIT_PRIVATE_KEY` - From your ImageKit dashboard
 - `IMAGEKIT_URL_ENDPOINT` - From your ImageKit dashboard
-- `NEXT_PUBLIC_APP_URL` - Your Vercel domain (e.g., `https://your-project.vercel.app`)
+  - Example: `https://ik.imagekit.io/your_imagekit_id`
+- `NEXT_PUBLIC_APP_URL` - Your Vercel domain
+  - Example: `https://your-project.vercel.app`
 - `NODE_ENV` - Set to `production`
+
+**Important**: Add these directly as environment variables in the Vercel dashboard. You don't need to create Vercel Secrets unless you prefer that method.
 
 #### 4. Configure Build Settings
 
